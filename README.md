@@ -5,7 +5,7 @@ This repository includes Matlab codes and routines that were used in our manuscr
 
 The repository includes:
 
-1- Folder “MLMC_without_IS_for_SRNs” includes all related code to mu MLMC, based on explicit tau-leap, without importance sampling
+1- Folder “MLMC_without_IS_for_SRNs” includes all related code to MLMC, based on explicit tau-leap, without importance sampling
 
 2- Folder “MLMC_with_IS_for_SRNs” includes all related code to MLMC, based on explicit tau-leap, with importance sampling.
 
