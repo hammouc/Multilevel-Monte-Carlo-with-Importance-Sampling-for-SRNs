@@ -1,4 +1,4 @@
-# MLMC_importance_sampling_SRNs_cata_coupling
+# Importance sampling for a robust and efficient multilevel Monte Carlo estimator for stochastic reaction networks
 
 
 This repository includes Matlab codes and routines that were used in our manuscript entitled "Importance sampling for a robust and efficient multilevel Monte Carlo estimator for stochastic reaction networks" that can be found in this preprint: https://arxiv.org/abs/1911.06286. This work intends to design a more efficient and robust multilevel Monte Carlo (MLMC) estimator for stochastic biological systems and pure jumps. In particular, we address the issue of catastrophic coupling, explained in https://arxiv.org/abs/1911.06286.
