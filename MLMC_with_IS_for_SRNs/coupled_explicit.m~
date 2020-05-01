@@ -1,0 +1,223 @@
+function [x,lik] =coupled_explicit(h1,tend,M,exp_number)
+
+ % This function couple two consecutive levels of paths 
+ % with coarse time step h1 simulated by partial implicit 
+ % tau leap method 
+ 
+ %Inputs:
+
+ % h1: The time step size for the coarse level
+ % tend: final time
+ % M: The number of needed samples of coupled paths
+ % exp_number= The index of our example (1: decay, 2: decaying dimerization
+ % , 3: Lotka Volterra)
+ 
+ %outputs:
+ % 1) x: Array(2xM)containing  , x(1:S,:) the sample values for the finer level 
+ % at final time and x(1+S:2*S,:) the sample values for the coarse level 
+ % at final time
+ 
+ % 2) lik: likelihood factor
+
+
+ 
+[c,zeta,mu,initial]=example(exp_number);
+ 
+ 
+%Number of reaction channels in original network.
+J= length(c); 
+
+%Total number of jump directions of the coupled process.
+Total = 3*J;
+
+%Number of species in original system.
+S = length(initial);
+
+%A very large maximum number of steps before breaking.
+maxi = 10^8;
+
+%initialize time.
+T = 0;
+
+%Initialize x.  The first three rows are for the process with step-size h1,
+% whereas the second three are for the process with step-size h1/2.
+
+x=repmat(initial',2,M);
+
+
+
+
+% r_x intensities for the finer level, r_z intensities for the coarse level
+r_x = zeros([J,M]);
+r_z = zeros([J,M]);
+
+%find intensities for process with coarser step-size.
+for j = 1:M
+r_z(:,j)=propensity(x(S+1:2*S,j),c,exp_number);
+end
+
+lambda = zeros([Total,M]);
+lik= ones([1,M]);
+count=zeros(1,M);
+for i=1:maxi-1,
+    
+    %If Time is passed, then we should break and take as output the vectors
+    %we have.
+    if T >= tend
+        break
+    end
+   
+    %Intensity functions for the different realizations of the tau-leaping 
+    %processes with the finer step size.  
+for j = 1:M 
+r_x(:,j)=propensity(x(1:S,j),c,exp_number);
+end
+
+
+ %Calculuate the intensities for the jump processes of the coupled
+ %processes.
+   
+ if mod(i,2) ~= 0
+     for j = 1:M
+         if r_x(1,j)-r_z(1,j)==0
+           if (min(r_x(1,j),r_z(1,j))==r_z(1,j))
+             
+             lambda(1,j) = min(r_x(1,j),r_z(1,j));
+             % lambda(1,j) = 2/h1;
+             lambda(2,j) = r_x(1,j)-r_z(1,j);
+             lambda(3,j) = 0;
+           else
+             lambda(1,j) = min(r_x(1,j),r_z(1,j));
+           % lambda(1,j) = 2/h1;
+             lambda(2,j) = 0;
+             lambda(3,j) = r_z(1,j)-r_x(1,j);
+           end
+         else
+             
+           if (min(r_x(1,j),r_z(1,j))==r_z(1,j))
+             count(j)=count(j)+1;
+             lambda(1,j) = min(r_x(1,j),r_z(1,j));
+             % lambda(1,j) = 2/h1;
+             lambda(2,j) = r_x(1,j);
+             lambda(3,j) = 0;
+           else
+             lambda(1,j) = min(r_x(1,j),r_z(1,j));
+           % lambda(1,j) = 2/h1;
+             lambda(2,j) = 0;
+             lambda(3,j) = r_x(1,j);
+           end  
+       
+         end
+    end
+   
+         
+      %get Poisson random numbers.   
+    P = poissrnd(lambda*(h1/2));
+     %update state vector
+    x(1:S,:)= x(1:S,:) + zeta(1:S,:)*P;
+    x(1+S:2*S,:)=  x(1+S:2*S,:) + zeta(1+S:2*S,:)*P;
+
+    x(1:S,:)= max( x(1:S,:),0);
+    x(1+S:2*S,:)= max(x(1+S:2*S,:),0);
+    y(i,:)=x(1,:)-x(2,:);
+    %if i==1
+        
+     %   x
+        
+    %end
+    %Computing the likelihood
+     for j = 1:M
+       if r_x(1,j)-r_z(1,j)~=0
+      lik(j)= lik(j)*exp((h1/2)*(r_x(1,j)-abs(r_x(1,j)-r_z(1,j))))*(abs(r_x(1,j)-r_z(1,j))/r_x(1,j))^(abs(P(2,j)-P(3,j)));
+       end
+     end  
+         
+  
+     
+ 
+     
+ elseif mod(i,2) == 0
+     for j = 1:M
+        if r_x(1,j)-r_z(1,j)==0
+           if (min(r_x(1,j),r_z(1,j))==r_z(1,j))
+            % count(j)=count(j)+1;
+             lambda(1,j) = min(r_x(1,j),r_z(1,j));
+             %lambda(1,j) = 2/h1;
+             lambda(2,j) = r_x(1,j)-r_z(1,j);
+          %  lambda(2,j) =0.1;
+            lambda(3,j) = 0;
+           else
+           lambda(1,j) = min(r_x(1,j),r_z(1,j));
+          %  lambda(1,j) = 2/h1;
+            lambda(2,j) = 0;
+           lambda(3,j) =r_z(1,j)-r_x(1,j); 
+            %lambda(3,j) =1;
+           end
+       
+        
+        else
+           if (min(r_x(1,j),r_z(1,j))==r_z(1,j))
+             count(j)=count(j)+1;
+             lambda(1,j) = min(r_x(1,j),r_z(1,j));
+             %lambda(1,j) = 2/h1;
+             lambda(2,j) = r_x(1,j);
+          %  lambda(2,j) =0.1;
+            lambda(3,j) = 0;
+           else
+           lambda(1,j) = min(r_x(1,j),r_z(1,j));
+          %  lambda(1,j) = 2/h1;
+            lambda(2,j) = 0;
+           lambda(3,j) =r_x(1,j); 
+            %lambda(3,j) =1;
+           end 
+        end     
+     end
+   
+       
+    
+      %get Poisson random numbers.   
+    P = poissrnd(lambda*(h1/2));
+     %update state vector
+    x(1:S,:)= x(1:S,:) + zeta(1:S,:)*P;
+    x(1+S:2*S,:)=  x(1+S:2*S,:) + zeta(1+S:2*S,:)*P;
+    
+    x(1:S,:)= max( x(1:S,:),0);
+    x(1+S:2*S,:)= max(x(1+S:2*S,:),0);
+    y(i,:)=x(1,:)-x(2,:);
+    %Computing the likelihood
+     for j = 1:M
+    
+       if r_x(1,j)-r_z(1,j)~=0
+      lik(j)= lik(j)*exp((h1/2)*(r_x(1,j)-abs(r_x(1,j)-r_z(1,j))))*(abs(r_x(1,j)-r_z(1,j))/r_x(1,j))^(abs(P(2,j)-P(3,j)));
+       end
+     end
+    %end
+
+   
+%update intensities for process with coarse step-size.
+
+for j = 1:M
+r_z(:,j)=propensity(x(S+1:2*S,j),c,exp_number);
+end
+
+
+
+
+end
+ 
+    %Update time.
+    T = T + h1/2;
+    
+    
+end % for i=1:maxi-1,
+mn=mean(lik);
+count
+mm=sum(count==0)
+clear lambda;
+clear P;
+clear r_z
+
+kurt=kurtosis((x(1,:)-x(2,:)).*lik)
+for
+plot(,y)
+end %The program
