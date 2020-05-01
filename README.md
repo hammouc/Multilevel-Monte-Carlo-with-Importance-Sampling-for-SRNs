@@ -10,3 +10,5 @@ The repository includes:
 2- Folder “MLMC_with_IS_for_SRNs” includes all related code to MLMC, based on explicit tau-leap, with importance sampling.
 
 3- Folder “MC_SSA_SRNs” includes all related code to Monte Carlo (MC) with an exact scheme SSA.
+
+4- Folder “Produced_results” includes all obtained results in our manuscript.
