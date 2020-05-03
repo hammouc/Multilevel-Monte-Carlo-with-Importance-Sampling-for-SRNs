@@ -162,7 +162,7 @@ for N1 = 1:10000:N
     end
   elseif  exp==4
     if l==0
-    Pf = single_estimator(hf,N2,exp,3);
+    Pf = single_estimator(hf,N2,exp,3,tend);
     elseif l>0
     [Pf,dP]= coupled_estimator_is(hc,exp,3,N2,tend,delta);
     end
