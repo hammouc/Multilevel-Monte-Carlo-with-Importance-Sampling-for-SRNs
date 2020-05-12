@@ -57,8 +57,6 @@ count=zeros(1,M);
 lik=ones([1,M]);
 
 
-
-
 for i=1:maxi-1
     
     %If Time is passed, then we should break and take as output the vectors
@@ -222,4 +220,6 @@ clear P;
 clear r_z
 %computing the kurtosis of the difference
 kurt=kurtosis((x(target,:)-x(target+S,:)).*lik);
+
+
 end %The program
